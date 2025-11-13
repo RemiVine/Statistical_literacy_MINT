@@ -1,1 +1,500 @@
 This contains an artifact to provide a few examples in choosing the type of hypothesis testing.
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Hypothesis Testing Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
+    <div id="app" class="p-8 max-w-4xl mx-auto"></div>
+
+    <script>
+        const scenarios = [
+            {
+                id: 1,
+                title: "Hospital Wait Time Claims",
+                context: "A hospital advertises that average emergency room wait time is 45 minutes. Patient advocates collected data and believe the actual time is significantly longer than advertised.",
+                question: "Test if the actual wait time EXCEEDS the advertised 45 minutes.",
+                correctAnswer: "right-tailed",
+                explanation: "Testing if actual values exceed (are greater than) a claim is right-tailed. H₀: μ = 45 vs H₁: μ > 45. Even though we want wait times to be low, we're testing if they're HIGHER than claimed.",
+                hint: "'Exceeds' and 'longer than' indicate you're testing if values are greater than the advertised claim.",
+                difficulty: "medium",
+                keyWords: ["exceeds", "longer than", "greater than claim"]
+            },
+            {
+                id: 2,
+                title: "Nutrition Program - Unexpected Effects",
+                context: "Children in a region have average weight-for-age z-score of -1.2 (mild undernutrition). A nutrition program is implemented, but there are concerns about both over-nutrition and persistent under-nutrition.",
+                question: "Assess whether the program CHANGED the average z-score from -1.2 in ANY direction.",
+                correctAnswer: "two-tailed",
+                explanation: "When concerned about deviation in EITHER direction (both over- and under-nutrition are problems), use two-tailed. H₀: μ = -1.2 vs H₁: μ ≠ -1.2. This is exploratory - we don't assume the direction of change.",
+                hint: "When both increase AND decrease would be concerning or noteworthy, you need to test both directions.",
+                difficulty: "medium",
+                keyWords: ["changed", "either direction", "any direction", "concerns about both"]
+            },
+            {
+                id: 3,
+                title: "Minimum Wage Compliance Investigation",
+                context: "The legal minimum wage is $12/hour. Labor inspectors have received complaints that a garment factory is violating minimum wage laws by paying workers less.",
+                question: "Investigate if the factory's average hourly wage FALLS BELOW the legal minimum of $12.",
+                correctAnswer: "left-tailed",
+                explanation: "Testing if wages fall below a legal minimum is left-tailed. H₀: μ = $12 vs H₁: μ < $12. The complaint suggests wages might be LESS than required.",
+                hint: "Compliance violations typically involve checking if values fall SHORT of required standards.",
+                difficulty: "medium",
+                keyWords: ["falls below", "less than", "minimum standard", "violation"]
+            },
+            {
+                id: 4,
+                title: "Environmental Standard Violation",
+                context: "Manufacturing facilities must maintain air quality by keeping particulate emissions below 50 ppm (parts per million). Environmental regulators suspect a factory is exceeding this limit.",
+                question: "Determine if the factory's average emissions VIOLATE the maximum standard of 50 ppm.",
+                correctAnswer: "right-tailed",
+                explanation: "This is tricky! Although the standard says 'below 50 ppm', you're testing if emissions EXCEED this limit. Testing for exceeding a maximum = right-tailed. H₀: μ = 50 vs H₁: μ > 50. The suspicion is that values are HIGHER than allowed.",
+                hint: "Think carefully: the standard requires 'below 50', but what direction are you testing? Are you checking if it's TOO HIGH?",
+                difficulty: "hard",
+                keyWords: ["exceed limit", "violate maximum", "above standard"]
+            },
+            {
+                id: 5,
+                title: "Pharmaceutical Efficacy Verification",
+                context: "A pharmaceutical company claims their new diabetes medication reduces blood glucose by exactly 25 mg/dL. Regulatory authorities must verify this claim with precision before approval, as both over-performance (risk of hypoglycemia) and under-performance (insufficient treatment) matter.",
+                question: "Verify if the actual reduction DIFFERS from the claimed 25 mg/dL (precision required for safety).",
+                correctAnswer: "two-tailed",
+                explanation: "Regulatory verification where deviation in EITHER direction has consequences requires two-tailed testing. H₀: μ = 25 vs H₁: μ ≠ 25. Both over-reduction (too effective = dangerous) and under-reduction (not effective enough) are problematic.",
+                hint: "When BOTH exceeding and falling short of a target have negative consequences, you must test both directions.",
+                difficulty: "hard",
+                keyWords: ["differs from", "verify claim", "precision required", "both directions matter"]
+            },
+            {
+                id: 6,
+                title: "Agricultural Certification Threshold",
+                context: "To receive organic certification, farms must demonstrate that pesticide residue levels are below 0.5 ppm. A farm applying for certification needs to prove they meet this requirement.",
+                question: "Prove that the farm's pesticide residue is BELOW the certification threshold of 0.5 ppm.",
+                correctAnswer: "left-tailed",
+                explanation: "Proving compliance with a maximum threshold (being BELOW a limit) is left-tailed. H₀: μ = 0.5 vs H₁: μ < 0.5. The farm needs evidence that their levels are LESS than the maximum allowed.",
+                hint: "To prove you're 'below' or 'under' a maximum limit, you test if values are less than the threshold.",
+                difficulty: "medium",
+                keyWords: ["below threshold", "less than maximum", "prove compliance"]
+            }
+        ];
+
+        let state = {
+            currentScenario: 0,
+            selectedAnswer: null,
+            showFeedback: false,
+            showHint: false,
+            score: 0,
+            completed: []
+        };
+
+        function createIcon(iconName, className = '') {
+            const iconMap = {
+                'Award': 'award',
+                'CheckCircle': 'check-circle',
+                'XCircle': 'x-circle',
+                'HelpCircle': 'help-circle',
+                'ArrowRight': 'arrow-right',
+                'RotateCcw': 'rotate-ccw',
+                'TrendingUp': 'trending-up',
+                'TrendingDown': 'trending-down',
+                'Minus': 'minus'
+            };
+            return `<i data-lucide="${iconMap[iconName]}" class="${className}"></i>`;
+        }
+
+        function getDifficultyColor(difficulty) {
+            switch(difficulty) {
+                case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+                case 'hard': return 'bg-red-100 text-red-800 border-red-300';
+                default: return 'bg-gray-100 text-gray-800 border-gray-300';
+            }
+        }
+
+        function getButtonStyle(answerType, scenario) {
+            const baseStyle = "p-4 rounded-lg text-left transition-all border-2 w-full ";
+            
+            if (!state.showFeedback) {
+                return baseStyle + "border-gray-300 hover:border-indigo-500 hover:bg-indigo-50 cursor-pointer";
+            }
+            
+            if (answerType === scenario.correctAnswer) {
+                return baseStyle + "border-green-500 bg-green-50";
+            }
+            
+            if (answerType === state.selectedAnswer && answerType !== scenario.correctAnswer) {
+                return baseStyle + "border-red-500 bg-red-50";
+            }
+            
+            return baseStyle + "border-gray-300 bg-gray-50 opacity-50";
+        }
+
+        function getIcon(answerType) {
+            if (answerType === 'left-tailed') return 'TrendingDown';
+            if (answerType === 'right-tailed') return 'TrendingUp';
+            return 'Minus';
+        }
+
+        function getIconColor(answerType) {
+            if (answerType === 'left-tailed') return 'text-blue-600 bg-blue-100';
+            if (answerType === 'right-tailed') return 'text-green-600 bg-green-100';
+            return 'text-purple-600 bg-purple-100';
+        }
+
+        function handleAnswer(answer) {
+            if (state.showFeedback) return;
+            
+            state.selectedAnswer = answer;
+            state.showFeedback = true;
+            
+            if (answer === scenarios[state.currentScenario].correctAnswer) {
+                state.score++;
+                state.completed.push(scenarios[state.currentScenario].id);
+            }
+            
+            render();
+        }
+
+        function nextScenario() {
+            if (state.currentScenario < scenarios.length - 1) {
+                state.currentScenario++;
+                state.selectedAnswer = null;
+                state.showFeedback = false;
+                state.showHint = false;
+                render();
+            }
+        }
+
+        function resetQuiz() {
+            state = {
+                currentScenario: 0,
+                selectedAnswer: null,
+                showFeedback: false,
+                showHint: false,
+                score: 0,
+                completed: []
+            };
+            render();
+        }
+
+        function toggleHint() {
+            state.showHint = !state.showHint;
+            render();
+        }
+
+        function render() {
+            const scenario = scenarios[state.currentScenario];
+            const progress = ((state.currentScenario + 1) / scenarios.length) * 100;
+            const isQuizComplete = state.currentScenario === scenarios.length - 1 && state.showFeedback;
+
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <div class="flex items-center justify-center gap-3 mb-3">
+                        ${createIcon('Award', 'w-10 h-10 text-indigo-600')}
+                        <h1 class="text-4xl font-bold text-gray-800">
+                            Advanced Hypothesis Testing Challenge
+                        </h1>
+                    </div>
+                    <p class="text-gray-600 text-lg">
+                        Master the nuances of test selection • 6 Complex Scenarios
+                    </p>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <div>
+                            <span class="text-sm font-medium text-gray-500">Progress</span>
+                            <div class="text-2xl font-bold text-gray-800">
+                                Scenario ${state.currentScenario + 1} of ${scenarios.length}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-medium text-gray-500">Score</span>
+                            <div class="text-2xl font-bold text-indigo-600">
+                                ${state.score}/${scenarios.length}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-4">
+                        <div 
+                            class="bg-gradient-to-r from-indigo-600 to-purple-600 h-4 rounded-full transition-all duration-500"
+                            style="width: ${progress}%"
+                        ></div>
+                    </div>
+                </div>
+
+                <!-- Scenario Card -->
+                <div class="bg-white rounded-xl shadow-xl p-8 mb-6 border border-gray-200 animate-slide-in">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">${scenario.title}</h2>
+                        <div class="flex gap-2 flex-wrap">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold border-2 ${getDifficultyColor(scenario.difficulty)}">
+                                ${scenario.difficulty.toUpperCase()}
+                            </span>
+                            ${scenario.keyWords.map(keyword => 
+                                `<span class="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700">${keyword}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-blue-500 p-5 mb-5 rounded-r-lg">
+                        <p class="text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                            <span class="text-blue-600">📋</span> Context:
+                        </p>
+                        <p class="text-gray-700 leading-relaxed">${scenario.context}</p>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-500 p-5 mb-6 rounded-r-lg">
+                        <p class="text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                            <span class="text-amber-600">🎯</span> Your Task:
+                        </p>
+                        <p class="text-gray-700 leading-relaxed font-medium">${scenario.question}</p>
+                    </div>
+
+                    <!-- Answer Options -->
+                    <div class="space-y-4 mb-6">
+                        <button
+                            onclick="handleAnswer('left-tailed')"
+                            class="${getButtonStyle('left-tailed', scenario)}"
+                            ${state.showFeedback ? 'disabled' : ''}
+                        >
+                            <div class="flex items-center gap-4">
+                                <div class="${getIconColor('left-tailed')} p-2 rounded-lg">
+                                    ${createIcon(getIcon('left-tailed'), 'w-6 h-6')}
+                                </div>
+                                <div class="flex-1 text-left">
+                                    <p class="font-bold text-gray-800 text-lg">Left-Tailed Test</p>
+                                    <p class="text-sm text-gray-600 mt-1">H₁: μ &lt; μ₀ (testing for decrease/below/less than)</p>
+                                </div>
+                                ${state.showFeedback && 'left-tailed' === scenario.correctAnswer ? 
+                                    createIcon('CheckCircle', 'w-7 h-7 text-green-600') : ''}
+                                ${state.showFeedback && 'left-tailed' === state.selectedAnswer && 'left-tailed' !== scenario.correctAnswer ? 
+                                    createIcon('XCircle', 'w-7 h-7 text-red-600') : ''}
+                            </div>
+                        </button>
+
+                        <button
+                            onclick="handleAnswer('right-tailed')"
+                            class="${getButtonStyle('right-tailed', scenario)}"
+                            ${state.showFeedback ? 'disabled' : ''}
+                        >
+                            <div class="flex items-center gap-4">
+                                <div class="${getIconColor('right-tailed')} p-2 rounded-lg">
+                                    ${createIcon(getIcon('right-tailed'), 'w-6 h-6')}
+                                </div>
+                                <div class="flex-1 text-left">
+                                    <p class="font-bold text-gray-800 text-lg">Right-Tailed Test</p>
+                                    <p class="text-sm text-gray-600 mt-1">H₁: μ &gt; μ₀ (testing for increase/above/greater than)</p>
+                                </div>
+                                ${state.showFeedback && 'right-tailed' === scenario.correctAnswer ? 
+                                    createIcon('CheckCircle', 'w-7 h-7 text-green-600') : ''}
+                                ${state.showFeedback && 'right-tailed' === state.selectedAnswer && 'right-tailed' !== scenario.correctAnswer ? 
+                                    createIcon('XCircle', 'w-7 h-7 text-red-600') : ''}
+                            </div>
+                        </button>
+
+                        <button
+                            onclick="handleAnswer('two-tailed')"
+                            class="${getButtonStyle('two-tailed', scenario)}"
+                            ${state.showFeedback ? 'disabled' : ''}
+                        >
+                            <div class="flex items-center gap-4">
+                                <div class="${getIconColor('two-tailed')} p-2 rounded-lg">
+                                    ${createIcon(getIcon('two-tailed'), 'w-6 h-6')}
+                                </div>
+                                <div class="flex-1 text-left">
+                                    <p class="font-bold text-gray-800 text-lg">Two-Tailed Test</p>
+                                    <p class="text-sm text-gray-600 mt-1">H₁: μ ≠ μ₀ (testing for any difference/change)</p>
+                                </div>
+                                ${state.showFeedback && 'two-tailed' === scenario.correctAnswer ? 
+                                    createIcon('CheckCircle', 'w-7 h-7 text-green-600') : ''}
+                                ${state.showFeedback && 'two-tailed' === state.selectedAnswer && 'two-tailed' !== scenario.correctAnswer ? 
+                                    createIcon('XCircle', 'w-7 h-7 text-red-600') : ''}
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Hint Button -->
+                    ${!state.showFeedback ? `
+                        <button
+                            onclick="toggleHint()"
+                            class="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 mb-4 font-medium transition-colors"
+                        >
+                            ${createIcon('HelpCircle', 'w-5 h-5')}
+                            <span>${state.showHint ? 'Hide Hint' : 'Need a Hint?'}</span>
+                        </button>
+                    ` : ''}
+
+                    ${state.showHint && !state.showFeedback ? `
+                        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-300 rounded-lg p-5 mb-4">
+                            <p class="text-indigo-900"><span class="text-2xl">💡</span> <strong>Hint:</strong> ${scenario.hint}</p>
+                        </div>
+                    ` : ''}
+
+                    <!-- Feedback -->
+                    ${state.showFeedback ? `
+                        <div class="rounded-lg p-6 mb-4 border-2 ${
+                            state.selectedAnswer === scenario.correctAnswer 
+                                ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-400' 
+                                : 'bg-gradient-to-r from-red-50 to-rose-50 border-red-400'
+                        }">
+                            <div class="flex items-center gap-3 mb-4">
+                                ${state.selectedAnswer === scenario.correctAnswer ? 
+                                    createIcon('CheckCircle', 'w-10 h-10 text-green-600') : 
+                                    createIcon('XCircle', 'w-10 h-10 text-red-600')}
+                                <h3 class="text-2xl font-bold ${
+                                    state.selectedAnswer === scenario.correctAnswer ? 'text-green-800' : 'text-red-800'
+                                }">
+                                    ${state.selectedAnswer === scenario.correctAnswer ? 'Excellent! ✨' : 'Not Quite 🤔'}
+                                </h3>
+                            </div>
+                            <div class="text-sm leading-relaxed ${
+                                state.selectedAnswer === scenario.correctAnswer ? 'text-green-900' : 'text-red-900'
+                            }">
+                                <strong class="text-base">Explanation:</strong>
+                                <p class="mt-2">${scenario.explanation}</p>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Navigation -->
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                        <button
+                            onclick="resetQuiz()"
+                            class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                            ${createIcon('RotateCcw', 'w-4 h-4')}
+                            <span class="font-medium">Restart Quiz</span>
+                        </button>
+
+                        ${state.showFeedback ? `
+                            <button
+                                onclick="nextScenario()"
+                                ${state.currentScenario === scenarios.length - 1 ? 'disabled' : ''}
+                                class="flex items-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${
+                                    state.currentScenario === scenarios.length - 1
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg'
+                                }"
+                            >
+                                <span>Next Scenario</span>
+                                ${createIcon('ArrowRight', 'w-5 h-5')}
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Final Score -->
+                ${isQuizComplete ? `
+                    <div class="bg-white rounded-xl shadow-xl p-10 text-center border-2 border-indigo-200 animate-slide-in">
+                        <div class="mb-6">
+                            ${createIcon('Award', 'w-20 h-20 text-indigo-600 mx-auto mb-4')}
+                            <h2 class="text-4xl font-bold text-gray-800 mb-2">Challenge Complete! 🎉</h2>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-2">
+                                ${state.score}/${scenarios.length}
+                            </div>
+                            <div class="text-xl text-gray-600">
+                                ${Math.round((state.score / scenarios.length) * 100)}% Correct
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 mb-6">
+                            <p class="text-lg font-semibold text-gray-800 mb-2">
+                                ${state.score === scenarios.length ? "🌟 Perfect Score! You're a hypothesis testing master!" : 
+                                  state.score === scenarios.length - 1 ? "🎯 Almost Perfect! Outstanding work!" :
+                                  state.score >= 4 ? "👏 Strong Performance! You understand the key concepts!" :
+                                  state.score === 3 ? "📚 Good Foundation! Review the tricky scenarios." :
+                                  "💪 Keep Practicing! Focus on the explanations to improve."}
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                Review the explanations to strengthen your understanding of nuanced test selection.
+                            </p>
+                        </div>
+
+                        <button
+                            onclick="resetQuiz()"
+                            class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-bold text-lg hover:from-indigo-700 hover:to-purple-700 inline-flex items-center gap-3 shadow-lg transition-all"
+                        >
+                            ${createIcon('RotateCcw', 'w-6 h-6')}
+                            <span>Retry Challenge</span>
+                        </button>
+                    </div>
+                ` : ''}
+
+                <!-- Strategy Guide -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mt-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <span>🎓</span> Decision Strategy Guide
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div class="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                            <div class="flex items-center gap-2 mb-3">
+                                ${createIcon('TrendingDown', 'w-6 h-6 text-blue-600')}
+                                <strong class="text-blue-900 text-base">Left-Tailed</strong>
+                            </div>
+                            <p class="text-gray-700 font-medium mb-2">Key phrases:</p>
+                            <ul class="text-gray-600 space-y-1 text-xs">
+                                <li>• Falls below / Under</li>
+                                <li>• Less than / Decrease</li>
+                                <li>• Reduction / Decline</li>
+                                <li>• Below minimum</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                            <div class="flex items-center gap-2 mb-3">
+                                ${createIcon('TrendingUp', 'w-6 h-6 text-green-600')}
+                                <strong class="text-green-900 text-base">Right-Tailed</strong>
+                            </div>
+                            <p class="text-gray-700 font-medium mb-2">Key phrases:</p>
+                            <ul class="text-gray-600 space-y-1 text-xs">
+                                <li>• Exceeds / Above</li>
+                                <li>• Greater than / Increase</li>
+                                <li>• Improvement / Growth</li>
+                                <li>• Violates maximum</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                            <div class="flex items-center gap-2 mb-3">
+                                ${createIcon('Minus', 'w-6 h-6 text-purple-600')}
+                                <strong class="text-purple-900 text-base">Two-Tailed</strong>
+                            </div>
+                            <p class="text-gray-700 font-medium mb-2">Key phrases:</p>
+                            <ul class="text-gray-600 space-y-1 text-xs">
+                                <li>• Differs from / Not equal</li>
+                                <li>• Any change / Either way</li>
+                                <li>• Verify claim precisely</li>
+                                <li>• Both directions matter</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Initialize Lucide icons after rendering
+            lucide.createIcons();
+        }
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>
