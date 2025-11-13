@@ -29,7 +29,6 @@
                 correctAnswer: "right-tailed",
                 explanation: "Testing if actual values exceed (are greater than) a claim is right-tailed. H₀: μ = 45 vs H₁: μ > 45. Even though we want wait times to be low, we're testing if they're HIGHER than claimed.",
                 hint: "'Exceeds' and 'longer than' indicate you're testing if values are greater than the advertised claim.",
-                difficulty: "medium",
                 keyWords: ["exceeds", "longer than", "greater than claim"]
             },
             {
@@ -40,7 +39,6 @@
                 correctAnswer: "two-tailed",
                 explanation: "When concerned about deviation in EITHER direction (both over- and under-nutrition are problems), use two-tailed. H₀: μ = -1.2 vs H₁: μ ≠ -1.2. This is exploratory - we don't assume the direction of change.",
                 hint: "When both increase AND decrease would be concerning or noteworthy, you need to test both directions.",
-                difficulty: "medium",
                 keyWords: ["changed", "either direction", "any direction", "concerns about both"]
             },
             {
@@ -51,7 +49,6 @@
                 correctAnswer: "left-tailed",
                 explanation: "Testing if wages fall below a legal minimum is left-tailed. H₀: μ = $12 vs H₁: μ < $12. The complaint suggests wages might be LESS than required.",
                 hint: "Compliance violations typically involve checking if values fall SHORT of required standards.",
-                difficulty: "medium",
                 keyWords: ["falls below", "less than", "minimum standard", "violation"]
             },
             {
@@ -62,7 +59,6 @@
                 correctAnswer: "right-tailed",
                 explanation: "This is tricky! Although the standard says 'below 50 ppm', you're testing if emissions EXCEED this limit. Testing for exceeding a maximum = right-tailed. H₀: μ = 50 vs H₁: μ > 50. The suspicion is that values are HIGHER than allowed.",
                 hint: "Think carefully: the standard requires 'below 50', but what direction are you testing? Are you checking if it's TOO HIGH?",
-                difficulty: "hard",
                 keyWords: ["exceed limit", "violate maximum", "above standard"]
             },
             {
@@ -84,7 +80,6 @@
                 correctAnswer: "left-tailed",
                 explanation: "Proving compliance with a maximum threshold (being BELOW a limit) is left-tailed. H₀: μ = 0.5 vs H₁: μ < 0.5. The farm needs evidence that their levels are LESS than the maximum allowed.",
                 hint: "To prove you're 'below' or 'under' a maximum limit, you test if values are less than the threshold.",
-                difficulty: "medium",
                 keyWords: ["below threshold", "less than maximum", "prove compliance"]
             }
         ];
@@ -111,14 +106,6 @@
                 'Minus': 'minus'
             };
             return `<i data-lucide="${iconMap[iconName]}" class="${className}"></i>`;
-        }
-
-        function getDifficultyColor(difficulty) {
-            switch(difficulty) {
-                case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-                case 'hard': return 'bg-red-100 text-red-800 border-red-300';
-                default: return 'bg-gray-100 text-gray-800 border-gray-300';
-            }
         }
 
         function getButtonStyle(answerType, scenario) {
