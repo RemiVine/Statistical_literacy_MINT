@@ -240,14 +240,6 @@
                 <div class="bg-white rounded-xl shadow-xl p-8 mb-6 border border-gray-200 animate-slide-in">
                     <div class="mb-6">
                         <h2 class="text-2xl font-bold text-gray-800 mb-2">${scenario.title}</h2>
-                        <div class="flex gap-2 flex-wrap">
-                            <span class="px-3 py-1 rounded-full text-xs font-bold border-2 ${getDifficultyColor(scenario.difficulty)}">
-                                ${scenario.difficulty.toUpperCase()}
-                            </span>
-                            ${scenario.keyWords.map(keyword => 
-                                `<span class="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700">${keyword}</span>`
-                            ).join('')}
-                        </div>
                     </div>
                     
                     <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-blue-500 p-5 mb-5 rounded-r-lg">
