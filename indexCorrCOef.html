@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Correlation Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+    <div id="app" class="p-8 max-w-5xl mx-auto"></div>
+
+    <script>
+        const scenarios = [
+            {
+                id: 1,
+                type: "coefficient-from-plot",
+                title: "Education and Income",
+                context: "A development study examined the relationship between years of education and annual income (in thousands of USD) across 50 rural households.",
+                data: [
+                    [2, 8], [3, 9], [5, 12], [6, 15], [8, 18], [9, 20], [10, 22], [12, 26], [13, 28], [14, 30],
+                    [4, 10], [7, 17], [11, 24], [6, 14], [9, 21], [5, 13], [8, 19], [10, 23], [12, 25], [13, 29],
+                    [3, 10], [4, 11], [5, 14], [7, 16], [8, 20], [9, 19], [11, 25], [6, 16], [10, 21], [12, 27],
+                    [2, 9], [4, 12], [6, 13], [8, 17], [7, 18], [9, 22], [11, 23], [13, 27], [14, 31], [5, 11],
+                    [3, 8], [6, 15], [8, 18], [10, 24], [12, 28], [7, 19], [9, 20], [11, 26], [4, 13], [5, 12]
+                ],
+                xLabel: "Years of Education",
+                yLabel: "Annual Income ($1000s)",
+                correctAnswer: "0.95",
+                options: ["0.95", "0.65", "0.30", "-0.50"],
+                explanation: "This shows a very strong positive correlation (r ≈ 0.95). The points cluster tightly around an upward sloping line, indicating that as education increases, income increases predictably with minimal scatter.",
+                hint: "Look at how tightly the points follow a clear upward trend. Very little scatter means a correlation close to +1."
+            },
+            {
+                id: 2,
+                type: "coefficient-from-plot",
+                title: "Healthcare Access and Child Mortality",
+                context: "Researchers analyzed the relationship between healthcare facilities per 10,000 people and under-5 mortality rate (per 1,000 live births) across 50 districts.",
+                data: [
+                    [2, 95], [3, 88], [4, 82], [5, 75], [6, 70], [7, 65], [8, 58], [9, 52], [10, 48], [11, 42],
+                    [3, 90], [5, 78], [7, 67], [9, 55], [4, 80], [6, 72], [8, 60], [10, 50], [5, 76], [7, 66],
+                    [2, 92], [3, 86], [4, 84], [6, 68], [7, 63], [8, 62], [9, 54], [10, 46], [11, 44], [5, 77],
+                    [2, 94], [4, 81], [6, 71], [8, 59], [10, 49], [3, 89], [5, 74], [7, 64], [9, 53], [11, 43],
+                    [2, 93], [3, 87], [5, 79], [7, 69], [9, 51], [4, 83], [6, 73], [8, 61], [10, 47], [11, 41]
+                ],
+                xLabel: "Healthcare Facilities (per 10k)",
+                yLabel: "Child Mortality (per 1k births)",
+                correctAnswer: "-0.92",
+                options: ["-0.92", "-0.45", "0.30", "0.85"],
+                explanation: "This shows a very strong negative correlation (r ≈ -0.92). As healthcare access increases, child mortality decreases consistently. The tight clustering around a downward slope indicates strong negative association.",
+                hint: "The relationship is clearly negative (downward), and the points are tightly clustered. This suggests a correlation close to -1."
+            },
+            {
+                id: 3,
+                type: "coefficient-from-plot",
+                title: "Water Access and Disease Prevalence",
+                context: "A public health study tracked the relationship between percentage of households with clean water access and waterborne disease cases per 1,000 people across 50 communities.",
+                data: [
+                    [20, 65], [25, 58], [30, 54], [35, 49], [40, 45], [45, 42], [50, 38], [55, 35], [60, 31], [65, 28],
+                    [22, 62], [28, 55], [33, 51], [38, 47], [43, 43], [48, 40], [53, 36], [58, 33], [63, 29], [68, 26],
+                    [24, 60], [29, 56], [34, 52], [39, 48], [44, 44], [49, 41], [54, 37], [59, 34], [64, 30], [69, 27],
+                    [21, 64], [26, 59], [31, 53], [36, 50], [41, 46], [46, 39], [51, 37], [56, 32], [61, 30], [66, 25],
+                    [23, 61], [27, 57], [32, 52], [37, 46], [42, 44], [47, 41], [52, 38], [57, 35], [62, 31], [67, 28]
+                ],
+                xLabel: "Clean Water Access (%)",
+                yLabel: "Disease Cases (per 1000)",
+                correctAnswer: "-0.88",
+                options: ["-0.88", "-0.40", "0.65", "0.90"],
+                explanation: "This shows a strong negative correlation (r ≈ -0.88). Higher water access is associated with lower disease rates, with relatively tight clustering around the downward trend showing consistent improvement with better infrastructure.",
+                hint: "Strong downward pattern with fairly tight clustering suggests a correlation in the -0.85 to -0.95 range."
+            },
+            {
+                id: 4,
+                type: "coefficient-from-plot",
+                title: "Agricultural Training and Crop Yield",
+                context: "A study tracked the relationship between days of agricultural training received and crop yield (tons per hectare) for 50 smallholder farmers implementing new techniques.",
+                data: [
+                    [0, 2.1], [2, 2.8], [3, 2.5], [5, 3.2], [6, 3.8], [8, 3.5], [10, 4.2], [4, 3.0], [7, 3.6], [9, 4.0],
+                    [1, 2.3], [3, 2.9], [5, 3.3], [7, 3.7], [2, 2.6], [6, 3.4], [8, 3.9], [4, 3.1], [9, 4.1], [1, 2.4],
+                    [0, 2.0], [2, 2.7], [4, 2.9], [6, 3.5], [8, 3.7], [10, 4.3], [3, 2.8], [5, 3.4], [7, 3.8], [9, 4.2],
+                    [1, 2.5], [3, 3.0], [5, 3.1], [7, 3.9], [9, 3.8], [2, 2.9], [4, 3.2], [6, 3.3], [8, 4.0], [10, 4.1],
+                    [0, 2.2], [2, 2.6], [4, 3.3], [6, 3.6], [8, 3.8], [1, 2.4], [3, 2.7], [5, 3.0], [7, 4.0], [9, 3.9]
+                ],
+                xLabel: "Training Days",
+                yLabel: "Crop Yield (tons/hectare)",
+                correctAnswer: "0.75",
+                options: ["0.75", "0.95", "0.30", "-0.60"],
+                explanation: "This shows a moderate-to-strong positive correlation (r ≈ 0.75). While there's a clear upward trend showing training benefits, the visible scatter indicates that other factors (soil quality, weather, farmer experience) also influence yields significantly.",
+                hint: "There's a clear positive trend, but more scatter than a perfect relationship. This suggests moderate-to-strong correlation (0.7-0.8 range)."
+            },
+            {
+                id: 5,
+                type: "plot-from-coefficient",
+                title: "Sanitation Coverage and Disease Incidence",
+                context: "Which scatter plot best represents r = -0.95 between improved sanitation coverage (%) and waterborne disease incidence (per 1,000 people)?",
+                correctAnswer: "A",
+                plots: [
+                    {
+                        id: "A",
+                        data: [[10, 95], [15, 90], [20, 88], [25, 85], [30, 80], [35, 77], [40, 72], [45, 68], [50, 65], [55, 60], [60, 57], [65, 53], [70, 50], [75, 46], [80, 42], [85, 38], [90, 35], [95, 30], [12, 93], [18, 89], [22, 86], [28, 82], [33, 78], [38, 74], [43, 69], [48, 66], [53, 62], [58, 58], [63, 54], [68, 51], [73, 47], [78, 44], [83, 40], [88, 36], [93, 32], [17, 91], [27, 84], [37, 75], [47, 67], [57, 59], [67, 52], [77, 45], [87, 37], [23, 87], [32, 79], [42, 70], [52, 63], [62, 55], [72, 48]],
+                        label: "Plot A"
+                    },
+                    {
+                        id: "B",
+                        data: [[10, 50], [15, 48], [20, 55], [25, 52], [30, 45], [35, 58], [40, 60], [45, 47], [50, 52], [55, 49], [60, 48], [65, 53], [70, 55], [75, 51], [80, 50], [85, 54], [90, 52], [95, 47], [12, 51], [18, 49], [22, 54], [28, 56], [33, 48], [38, 50], [43, 53], [48, 49], [53, 52], [58, 51], [63, 50], [68, 54], [73, 49], [78, 52], [83, 51], [88, 48], [93, 50], [25, 52], [35, 49], [45, 51], [55, 53], [65, 50], [75, 52], [85, 49], [14, 52], [24, 50], [34, 51], [44, 49], [54, 52], [64, 51], [74, 50]],
+                        label: "Plot B"
+                    },
+                    {
+                        id: "C",
+                        data: [[10, 30], [15, 32], [20, 35], [25, 38], [30, 42], [35, 45], [40, 48], [45, 52], [50, 55], [55, 58], [60, 62], [65, 65], [70, 70], [75, 73], [80, 78], [85, 82], [90, 85], [95, 88], [12, 31], [18, 34], [22, 37], [28, 40], [33, 44], [38, 47], [43, 50], [48, 54], [53, 57], [58, 60], [63, 64], [68, 68], [73, 72], [78, 76], [83, 80], [88, 84], [93, 87], [17, 33], [27, 39], [37, 46], [47, 53], [57, 59], [67, 67], [77, 75], [87, 83], [23, 36], [32, 43], [42, 49], [52, 56], [62, 63], [72, 71]],
+                        label: "Plot C"
+                    },
+                    {
+                        id: "D",
+                        data: [[10, 80], [15, 78], [20, 75], [25, 70], [30, 68], [35, 65], [40, 58], [45, 60], [50, 55], [55, 50], [60, 48], [65, 52], [70, 35], [75, 45], [80, 40], [85, 32], [90, 38], [95, 28], [12, 79], [18, 76], [22, 72], [28, 69], [33, 64], [38, 62], [43, 57], [48, 54], [53, 51], [58, 49], [63, 47], [68, 42], [73, 40], [78, 36], [83, 34], [88, 30], [93, 29], [25, 71], [35, 63], [45, 56], [55, 53], [65, 46], [75, 39], [85, 33], [16, 77], [26, 70], [36, 61], [46, 58], [56, 48], [66, 44], [76, 37]],
+                        label: "Plot D"
+                    }
+                ],
+                xLabel: "Sanitation Coverage (%)",
+                yLabel: "Disease Incidence (per 1000)",
+                explanation: "Plot A shows r ≈ -0.95: very strong negative correlation with tight clustering around a steep downward line. Plot B shows no correlation (r ≈ 0) - random scatter. Plot C shows strong positive correlation. Plot D shows moderate negative correlation with too much scatter for r = -0.95.",
+                hint: "r = -0.95 means very strong negative relationship. Look for tight clustering around a steep downward slope with minimal deviation."
+            },
+            {
+                id: 6,
+                type: "plot-from-coefficient",
+                title: "Literacy Rate and Economic Growth",
+                context: "Which scatter plot best represents r = 0.68 between adult literacy rate (%) and annual GDP growth rate (%)?",
+                correctAnswer: "C",
+                plots: [
+                    {
+                        id: "A",
+                        data: [[40, 3.2], [45, 3.5], [50, 3.8], [55, 3.9], [60, 4.1], [65, 4.3], [70, 4.5], [75, 4.6], [80, 4.8], [85, 5.0], [90, 5.2], [95, 5.3], [42, 3.3], [47, 3.6], [52, 3.7], [57, 4.0], [62, 4.2], [67, 4.4], [72, 4.6], [77, 4.7], [82, 4.9], [87, 5.1], [92, 5.2], [43, 3.4], [48, 3.7], [53, 3.9], [58, 4.0], [63, 4.1], [68, 4.4], [73, 4.5], [78, 4.7], [83, 4.8], [88, 5.1], [93, 5.3], [41, 3.2], [46, 3.5], [51, 3.8], [56, 3.9], [61, 4.2], [66, 4.3], [71, 4.6], [76, 4.7], [81, 4.9], [86, 5.0], [91, 5.2], [44, 3.4], [49, 3.6], [54, 3.8], [59, 4.1]],
+                        label: "Plot A"
+                    },
+                    {
+                        id: "B",
+                        data: [[40, 5.5], [45, 5.2], [50, 5.0], [55, 4.8], [60, 4.5], [65, 4.2], [70, 4.0], [75, 3.8], [80, 3.5], [85, 3.2], [90, 3.0], [95, 2.8], [42, 5.4], [47, 5.1], [52, 4.9], [57, 4.7], [62, 4.4], [67, 4.1], [72, 3.9], [77, 3.7], [82, 3.4], [87, 3.1], [92, 2.9], [43, 5.3], [48, 5.0], [53, 4.8], [58, 4.6], [63, 4.3], [68, 4.0], [73, 3.8], [78, 3.6], [83, 3.3], [88, 3.1], [93, 2.8], [41, 5.4], [46, 5.2], [51, 4.9], [56, 4.7], [61, 4.4], [66, 4.2], [71, 3.9], [76, 3.7], [81, 3.4], [86, 3.2], [91, 2.9], [44, 5.3], [49, 5.1], [54, 4.8], [59, 4.6]],
+                        label: "Plot B"
+                    },
+                    {
+                        id: "C",
+                        data: [[40, 2.5], [45, 2.8], [50, 3.0], [55, 3.2], [60, 2.8], [65, 3.5], [70, 3.8], [75, 3.7], [80, 4.2], [85, 4.0], [90, 4.5], [95, 4.8], [42, 2.6], [47, 2.9], [52, 3.1], [57, 3.3], [62, 3.0], [67, 3.6], [72, 3.9], [77, 3.8], [82, 4.3], [87, 4.1], [92, 4.6], [43, 2.7], [48, 2.8], [53, 3.2], [58, 3.1], [63, 3.4], [68, 3.7], [73, 3.6], [78, 4.0], [83, 4.1], [88, 4.3], [93, 4.7], [41, 2.4], [46, 2.7], [51, 2.9], [56, 3.3], [61, 3.2], [66, 3.4], [71, 3.8], [76, 4.1], [81, 4.0], [86, 4.2], [91, 4.4], [44, 2.8], [49, 3.1], [54, 3.0], [59, 3.5]],
+                        label: "Plot C"
+                    },
+                    {
+                        id: "D",
+                        data: [[40, 4.0], [45, 3.9], [50, 4.1], [55, 4.0], [60, 3.9], [65, 4.1], [70, 4.2], [75, 4.1], [80, 3.8], [85, 3.9], [90, 4.0], [95, 4.0], [42, 4.1], [47, 4.0], [52, 3.9], [57, 4.1], [62, 4.0], [67, 3.9], [72, 4.1], [77, 4.0], [82, 4.0], [87, 3.9], [92, 4.1], [43, 4.0], [48, 3.9], [53, 4.0], [58, 4.1], [63, 3.9], [68, 4.0], [73, 3.9], [78, 4.1], [83, 4.0], [88, 4.0], [93, 3.9], [41, 4.1], [46, 4.0], [51, 3.9], [56, 4.0], [61, 4.1], [66, 4.0], [71, 3.9], [76, 4.0], [81, 3.9], [86, 4.1], [91, 4.0], [44, 4.0], [49, 3.9], [54, 4.1], [59, 4.0]],
+                        label: "Plot D"
+                    }
+                ],
+                xLabel: "Adult Literacy Rate (%)",
+                yLabel: "GDP Growth Rate (%)",
+                explanation: "Plot C shows r ≈ 0.68: moderate positive correlation with visible scatter around an upward trend. Plot A shows very strong positive (too tight for 0.68). Plot B shows strong negative correlation. Plot D shows no correlation (random scatter around a horizontal line).",
+                hint: "r = 0.68 is moderate positive - look for a clear upward trend but with noticeable scatter, not tightly clustered like r > 0.9 would be."
+            }
+        ];
+
+        let state = {
+            currentScenario: 0,
+            selectedAnswer: null,
+            showFeedback: false,
+            showHint: false,
+            score: 0
+        };
+
+        function createScatterPlot(data, xLabel, yLabel, width = 280, height = 200) {
+            const padding = 40;
+            const plotWidth = width - 2 * padding;
+            const plotHeight = height - 2 * padding;
+
+            const xValues = data.map(d => d[0]);
+            const yValues = data.map(d => d[1]);
+            const xMin = Math.min(...xValues);
+            const xMax = Math.max(...xValues);
+            const yMin = Math.min(...yValues);
+            const yMax = Math.max(...yValues);
+
+            const xScale = (x) => padding + ((x - xMin) / (xMax - xMin)) * plotWidth;
+            const yScale = (y) => height - padding - ((y - yMin) / (yMax - yMin)) * plotHeight;
+
+            let svg = `<svg width="${width}" height="${height}" class="bg-white rounded border border-gray-300">`;
+            svg += `<line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#666" stroke-width="2" />`;
+            svg += `<line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#666" stroke-width="2" />`;
+            
+            data.forEach(point => {
+                svg += `<circle cx="${xScale(point[0])}" cy="${yScale(point[1])}" r="3" fill="#4F46E5" opacity="0.6" />`;
+            });
+            
+            svg += `<text x="${width / 2}" y="${height - 5}" text-anchor="middle" font-size="11" fill="#666">${xLabel}</text>`;
+            svg += `<text x="15" y="${height / 2}" text-anchor="middle" font-size="11" fill="#666" transform="rotate(-90, 15, ${height / 2})">${yLabel}</text>`;
+            svg += `</svg>`;
+            
+            return svg;
+        }
+
+        function createIcon(iconName, className = '') {
+            const iconMap = {
+                'TrendingUp': 'trending-up',
+                'CheckCircle': 'check-circle',
+                'XCircle': 'x-circle',
+                'HelpCircle': 'help-circle',
+                'ArrowRight': 'arrow-right',
+                'RotateCcw': 'rotate-ccw',
+                'Award': 'award'
+            };
+            return `<i data-lucide="${iconMap[iconName]}" class="${className}"></i>`;
+        }
+
+        function handleAnswer(answer) {
+            if (state.showFeedback) return;
+            
+            state.selectedAnswer = answer;
+            state.showFeedback = true;
+            
+            if (answer === scenarios[state.currentScenario].correctAnswer) {
+                state.score++;
+            }
+            
+            render();
+        }
+
+        function nextScenario() {
+            if (state.currentScenario < scenarios.length - 1) {
+                state.currentScenario++;
+                state.selectedAnswer = null;
+                state.showFeedback = false;
+                state.showHint = false;
+                render();
+            }
+        }
+
+        function resetQuiz() {
+            state = {
+                currentScenario: 0,
+                selectedAnswer: null,
+                showFeedback: false,
+                showHint: false,
+                score: 0
+            };
+            render();
+        }
+
+        function toggleHint() {
+            state.showHint = !state.showHint;
+            render();
+        }
+
+        function getButtonStyle(answerValue, scenario) {
+            const baseStyle = "p-4 rounded-lg font-bold text-lg border-2 transition-all w-full ";
+            
+            if (!state.showFeedback) {
+                return baseStyle + "border-gray-300 hover:border-indigo-500 hover:bg-indigo-50 cursor-pointer";
+            }
+            
+            if (answerValue === scenario.correctAnswer) {
+                return baseStyle + "border-green-500 bg-green-50";
+            }
+            
+            if (answerValue === state.selectedAnswer && answerValue !== scenario.correctAnswer) {
+                return baseStyle + "border-red-500 bg-red-50";
+            }
+            
+            return baseStyle + "border-gray-300 bg-gray-50 opacity-50";
+        }
+
+        function render() {
+            const scenario = scenarios[state.currentScenario];
+            const progress = ((state.currentScenario + 1) / scenarios.length) * 100;
+            const isQuizComplete = state.currentScenario === scenarios.length - 1 && state.showFeedback;
+
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <div class="flex items-center justify-center gap-3 mb-3">
+                        ${createIcon('TrendingUp', 'w-10 h-10 text-indigo-600')}
+                        <h1 class="text-4xl font-bold text-gray-800">Linear Correlation Challenge</h1>
+                    </div>
+                    <p class="text-gray-600 text-lg">Development Studies Edition • Master Correlation Interpretation</p>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <div>
+                            <span class="text-sm font-medium text-gray-500">Progress</span>
+                            <div class="text-2xl font-bold text-gray-800">Question ${state.currentScenario + 1} of ${scenarios.length}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-medium text-gray-500">Score</span>
+                            <div class="text-2xl font-bold text-indigo-600">${state.score}/${scenarios.length}</div>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-4">
+                        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 h-4 rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+
+                <!-- Question Card -->
+                <div class="bg-white rounded-xl shadow-xl p-8 mb-6 animate-slide-in">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">${scenario.title}</h2>
+                    
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-5 mb-6 rounded-r-lg">
+                        <p class="text-gray-700 leading-relaxed">${scenario.context}</p>
+                    </div>
+
+                    ${scenario.type === "coefficient-from-plot" ? `
+                        <div class="flex justify-center mb-6">
+                            ${createScatterPlot(scenario.data, scenario.xLabel, scenario.yLabel, 500, 350)}
+                        </div>
+                    ` : `
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            ${scenario.plots.map(plot => `
+                                <div class="text-center">
+                                    ${createScatterPlot(plot.data, scenario.xLabel, scenario.yLabel)}
+                                    <p class="mt-2 font-semibold text-gray-700">${plot.label}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+
+                    <div class="bg-amber-50 border-l-4 border-amber-500 p-5 mb-6 rounded-r-lg">
+                        <p class="text-gray-800 font-bold">
+                            ${scenario.type === "coefficient-from-plot" 
+                                ? "What is the correlation coefficient (r) for this relationship?" 
+                                : "Which plot best represents the given correlation coefficient?"}
+                        </p>
+                    </div>
+
+                    <!-- Answer Options -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        ${scenario.type === "coefficient-from-plot" 
+                            ? scenario.options.map(option => `
+                                <button
+                                    onclick="handleAnswer('${option}')"
+                                    class="${getButtonStyle(option, scenario)}"
+                                    ${state.showFeedback ? 'disabled' : ''}
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <span>r = ${option}</span>
+                                        ${state.showFeedback && option === scenario.correctAnswer ? createIcon('CheckCircle', 'w-6 h-6 text-green-600') : ''}
+                                        ${state.showFeedback && option === state.selectedAnswer && option !== scenario.correctAnswer ? createIcon('XCircle', 'w-6 h-6 text-red-600') : ''}
+                                    </div>
+                                </button>
+                            `).join('')
+                            : scenario.plots.map(plot => `
+                                <button
+                                    onclick="handleAnswer('${plot.id}')"
+                                    class="${getButtonStyle(plot.id, scenario)}"
+                                    ${state.showFeedback ? 'disabled' : ''}
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <span>${plot.label}</span>
+                                        ${state.showFeedback && plot.id === scenario.correctAnswer ? createIcon('CheckCircle', 'w-6 h-6 text-green-600') : ''}
+                                        ${state.showFeedback && plot.id === state.selectedAnswer && plot.id !== scenario.correctAnswer ? createIcon('XCircle', 'w-6 h-6 text-red-600') : ''}
+                                    </div>
+                                </button>
+                            `).join('')}
+                    </div>
+
+                    <!-- Hint Button -->
+                    ${!state.showFeedback ? `
+                        <button
+                            onclick="toggleHint()"
+                            class="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 mb-4 font-medium transition-colors"
+                        >
+                            ${createIcon('HelpCircle', 'w-5 h-5')}
+                            <span>${state.showHint ? 'Hide Hint' : 'Need a Hint?'}</span>
+                        </button>
+                    ` : ''}
+
+                    ${state.showHint && !state.showFeedback ? `
+                        <div class="bg-indigo-50 border-2 border-indigo-300 rounded-lg p-5 mb-4">
+                            <p class="text-indigo-900"><strong>💡 Hint:</strong> ${scenario.hint}</p>
+                        </div>
+                    ` : ''}
+
+                    <!-- Feedback -->
+                    ${state.showFeedback ? `
+                        <div class="rounded-lg p-6 mb-4 border-2 ${
+                            state.selectedAnswer === scenario.correctAnswer 
+                                ? 'bg-green-50 border-green-400' 
+                                : 'bg-red-50 border-red-400'
+                        }">
+                            <div class="flex items-center gap-3 mb-4">
+                                ${state.selectedAnswer === scenario.correctAnswer 
+                                    ? createIcon('CheckCircle', 'w-10 h-10 text-green-600') 
+                                    : createIcon('XCircle', 'w-10 h-10 text-red-600')}
+                                <h3 class="text-2xl font-bold ${
+                                    state.selectedAnswer === scenario.correctAnswer ? 'text-green-800' : 'text-red-800'
+                                }">
+                                    ${state.selectedAnswer === scenario.correctAnswer ? 'Excellent! ✨' : 'Not Quite 🤔'}
+                                </h3>
+                            </div>
+                            <p class="text-sm leading-relaxed ${
+                                state.selectedAnswer === scenario.correctAnswer ? 'text-green-900' : 'text-red-900'
+                            }">
+                                <strong>Explanation:</strong> ${scenario.explanation}
+                            </p>
+                        </div>
+                    ` : ''}
+
+                    <!-- Navigation -->
+                    <div class="flex justify-between items-center pt-4 border-t">
+                        <button
+                            onclick="resetQuiz()"
+                            class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                            ${createIcon('RotateCcw', 'w-4 h-4')}
+                            <span class="font-medium">Restart</span>
+                        </button>
+
+                        ${state.showFeedback ? `
+                            <button
+                                onclick="nextScenario()"
+                                ${isQuizComplete ? 'disabled' : ''}
+                                class="flex items-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${
+                                    isQuizComplete
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700'
+                                }"
+                            >
+                                <span>Next Question</span>
+                                ${createIcon('ArrowRight', 'w-5 h-5')}
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Final Score -->
+                ${isQuizComplete ? `
+                    <div class="bg-white rounded-xl shadow-xl p-10 text-center border-2 border-indigo-200 animate-slide-in">
+                        ${createIcon('Award', 'w-20 h-20 text-indigo-600 mx-auto mb-4')}
+                        <h2 class="text-4xl font-bold text-gray-800 mb-4">Challenge Complete! 🎉</h2>
+                        <div class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-2">
+                            ${state.score}/${scenarios.length}
+                        </div>
+                        <div class="text-xl text-gray-600 mb-6">${Math.round((state.score / scenarios.length) * 100)}% Correct</div>
+                        <button
+                            onclick="resetQuiz()"
+                            class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-bold text-lg hover:from-indigo-700 hover:to-purple-700 inline-flex items-center gap-3 shadow-lg transition-all"
+                        >
+                            ${createIcon('RotateCcw', 'w-6 h-6')}
+                            <span>Retry Challenge</span>
+                        </button>
+                    </div>
+                ` : ''}
+
+                <!-- Guide -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mt-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">📊 Correlation Coefficient Guide</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <strong class="text-green-900">Strong Positive (0.7 to 1.0)</strong>
+                            <p class="text-gray-700 mt-2">Clear upward trend, tight clustering</p>
+                        </div>
+                        <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                            <strong class="text-yellow-900">Moderate (0.3 to 0.7 or -0.7 to -0.3)</strong>
+                            <p class="text-gray-700 mt-2">Visible trend with noticeable scatter</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                            <strong class="text-red-900">Strong Negative (-1.0 to -0.7)</strong>
+                            <p class="text-gray-700 mt-2">Clear downward trend, tight clustering</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Initialize Lucide icons after rendering
+            lucide.createIcons();
+        }
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>                
